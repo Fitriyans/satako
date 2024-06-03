@@ -14,4 +14,7 @@ ENV MONGO_URI=mongodb+srv://nursaidahfitria:URDxwZbzi0phPpI8@satakodb.8ftgzlo.mo
 
 ENV PORT=3000
 
+ENV SECRET_KEY=iniwajibrahasia
+
+
 CMD ["npm","run","dev"]
