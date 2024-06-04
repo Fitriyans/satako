@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
-const User = require("../models/user.model.js"); 
+const User = require("../models/user.model.js");
 
 const { generateAccessToken, getUserId } = require("../helpers/utility");
 
@@ -34,10 +34,18 @@ const sendResetEmail = (email, token) => {
   });
 };
 
-// Route to sign up a new user
-const signup = async (req, res) => {
+// Route to register a new user
+const register = async (req, res) => {
   try {
-    const { name, email, password, age, gender, role } = req.body;
+    const { username, email, password, confirmPassword } = req.body;
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        message: "Passwords do not match",
+        error_code: 400,
+      });
+    }
+
     const checkUser = await User.findOne({ email });
 
     if (checkUser) {
@@ -49,14 +57,10 @@ const signup = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const lowerCaseGender = gender.toLowerCase();
     const user = new User({
-      name,
+      username,
       email,
       password: hashedPassword,
-      age,
-      gender: lowerCaseGender,
-      role,
     });
 
     await user.save();
@@ -182,4 +186,4 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, requestPasswordReset, resetPassword };
+module.exports = { register, login, requestPasswordReset, resetPassword };
