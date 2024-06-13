@@ -1,37 +1,48 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const dotenv = require('dotenv').config();
+const dotenv = require('dotenv');
+const multer = require('multer');
+const PredictService = require('./src/service/service');
+const PredictHandler = require('./src/server/handler'); // Perbarui jalur ini
+dotenv.config();
+
+const productRoute = require("./src/routes/product.route");
+const userRoute = require('./src/routes/user.route');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-const Product = require("./models/product.model.js");
-const productRoute = require("./routes/product.route.js");
-const userRoute = require('./routes/user.route.js');
-
-const port = process.env.PORT || 3000;
-
-
-// middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// routes
+// Multer setup
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// Initialize PredictService and PredictHandler
+const predictService = new PredictService();
+const predictHandler = new PredictHandler(predictService);
+
+// Define route for prediction
+app.post('/api/predict', upload.single('image'), predictHandler.getPredictResult);
+
+// Routes
 app.use("/api/products", productRoute);
-app.use('/api', userRoute);
+app.use('/api/users', userRoute);
 
-
-
-// conncet database
+// Connect to database
 mongoose
-  .connect(
-    process.env.MONGO_URI
-  )
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("Connected to database!");
-    app.listen(port, () => {
-      console.log("Server is running on port http://localhost:3000");
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
     });
   })
-  .catch(() => {
-    console.log("Cannot connect to the database!");
+  .catch((error) => {
+    console.log("Cannot connect to the database!", error);
   });
