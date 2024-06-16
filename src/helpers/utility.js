@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-
+require('dotenv').config();
 
 const generateAccessToken = (user) => {
   return jwt.sign(
@@ -9,11 +9,19 @@ const generateAccessToken = (user) => {
   );
 };
 
+
 const getUserId = (req) => {
-  const token = req.headers.authorization.split(' ')[1];
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+      throw new Error('Authorization header missing');
+  }
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+      throw new Error('Token missing');
+  }
   const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
   return decodedToken.userId;
-}
+};
 
 const verifyAccessToken = async (token) => {
   try {
